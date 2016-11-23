@@ -49,7 +49,7 @@ void ASQCharacter::Tick( float DeltaTime )
 	
 	if (!current_movement.IsNearlyZero())
 	{
-		HandleMovement(current_movement);
+		HandleMovement(current_movement.ClampMaxSize(1.0f));
 		current_movement = FVector::ZeroVector;
 	}
 }
