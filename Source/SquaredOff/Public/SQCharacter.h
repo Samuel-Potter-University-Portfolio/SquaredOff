@@ -13,15 +13,19 @@ class SQUAREDOFF_API ASQCharacter : public APawn
 private:
 	FVector current_movement;
 	USphereComponent* body;
-	USQMovementComponent* movement;
 
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
-	float movement_force = 5000.0f;
+	float movement_force = 130000.0f;
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	bool invert_look = false;
 
+	UFUNCTION(Server, WithValidation, Reliable)
+	void HandleMovement(FVector movement_input);
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	void HandleJump();
 
 	ASQCharacter();
 
@@ -31,7 +35,6 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* input) override;	
 	
-
 	virtual void Input_Move_Forward(float value);
 	virtual void Input_Move_Strafe(float value);
 	virtual void Input_Look_Yaw(float value);

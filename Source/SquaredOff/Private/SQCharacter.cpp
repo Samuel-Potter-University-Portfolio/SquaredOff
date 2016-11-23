@@ -7,13 +7,11 @@
 
 ASQCharacter::ASQCharacter()
 {
-	//PrimaryActorTick.bCanEverTick = true;
-	//SetReplicateMovement(true);
-	//SetReplicates(true);
-	//bAlwaysRelevant = true;
+	PrimaryActorTick.bCanEverTick = true;
+	SetReplicates(true);
+	SetReplicateMovement(true);
+	bAlwaysRelevant = true;
 
-	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	RootComponent = root;
 
 	body = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 	body->SetSimulatePhysics(true);
@@ -21,6 +19,8 @@ ASQCharacter::ASQCharacter()
 	body->SetAngularDamping(1.0f);
 	body->InitSphereRadius(32.0f);
 	body->SetCollisionProfileName(FName("BlockAll"));
+	RootComponent = body;
+
 
 	USpringArmComponent* camera_arm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Arm"));
 	camera_arm->TargetArmLength = 300.0f;
@@ -31,9 +31,7 @@ ASQCharacter::ASQCharacter()
 
 	UCameraComponent* camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	camera->SetupAttachment(camera_arm);
-
-	//movement = CreateDefaultSubobject<USQMovementComponent>(TEXT("movement"));
-	//movement->UpdatedComponent = body;
+	
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
@@ -48,13 +46,32 @@ void ASQCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
-	//USphereComponent* body;
-	//movement->AddInputVector(current_movement * movement_force, true);
+	
+	if (!current_movement.IsNearlyZero())
+	{
+		HandleMovement(current_movement);
+		current_movement = FVector::ZeroVector;
+	}
+}
 
-	//body->AddRelativeLocation(current_movement);
+void ASQCharacter::HandleMovement_Implementation(FVector movement_input)
+{
+	body->AddForce(movement_input * movement_force);// , NAME_None, true);
+}
 
-	body->AddForce(current_movement * movement_force);// , NAME_None, true);
-	current_movement = FVector::ZeroVector;
+bool ASQCharacter::HandleMovement_Validate(FVector movement_input)
+{
+	return Role >= ROLE_AutonomousProxy;
+}
+
+void ASQCharacter::HandleJump_Implementation()
+{
+	body->AddForce(FVector(0.0f, 0.0f, 100000.0f), NAME_None, true);
+}
+
+bool ASQCharacter::HandleJump_Validate()
+{
+	return Role >= ROLE_AutonomousProxy;
 }
 
 void ASQCharacter::SetupPlayerInputComponent(class UInputComponent* input)
@@ -80,12 +97,7 @@ void ASQCharacter::Input_Move_Forward(float value)
 		if (direction.SizeSquared2D() && direction.Normalize())
 		{
 			current_movement += direction * value;
-			//AddMovementInput(direction * movement_force, value, false);
-			//movement->AddInputVector(direction * movement_force * value, true);
-
-			UE_LOG(LogInit, Log, TEXT("Test %s"), *(direction * movement_force * value).ToString())
 		}
-
 	}
 }
 
@@ -97,14 +109,7 @@ void ASQCharacter::Input_Move_Strafe(float value)
 		direction.Z = 0;
 
 		if (direction.SizeSquared2D() && direction.Normalize())
-		{
 			current_movement += direction * value;
-			//AddMovementInput(direction * movement_force, value, false);
-			//movement->AddInputVector(direction * movement_force * value, true);
-
-			UE_LOG(LogInit, Log, TEXT("Test %s"), *(direction * movement_force * value).ToString())
-		}
-
 	}
 }
 
@@ -122,6 +127,7 @@ void ASQCharacter::Input_Look_Pitch(float value)
 
 void ASQCharacter::Input_Jump_Press() 
 {
+	HandleJump();
 }
 
 void ASQCharacter::Input_Jump_Release() 
