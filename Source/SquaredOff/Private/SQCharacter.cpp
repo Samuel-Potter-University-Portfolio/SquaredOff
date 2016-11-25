@@ -59,25 +59,25 @@ void ASQCharacter::Tick( float DeltaTime )
 		current_movement = FVector::ZeroVector;
 	}
 
-	//Check if on ground
+	//Check if on ground (TODO - Fix for double jumps)
 	{
-		float current_jump_direction = GetVelocity().Z;
-		float fall_change = current_jump_direction - last_jump_direction;
+		FHitResult hit;
+		FCollisionQueryParams params;
+		params.AddIgnoredActor(this);
+		FVector location = GetActorLocation();
 
-		if (fall_change > 0)
-		{
-			if (last_jump_direction < 0)
-				on_ground = true;
-		}
-		else if(FMath::Abs(fall_change) > 7.4f)
-			on_ground = false;
+		on_ground = GetWorld()->LineTraceSingleByChannel(
+			hit, 
+			location,
+			location + FVector(0,0,-100),
+			ECC_WorldStatic,
+			params
+		);
 
 		if (on_ground)
 			jump_count = 0;
 		else if (jump_count == 0)
 			jump_count = 1;
-
-		last_jump_direction = current_jump_direction;
 	}
 }
 

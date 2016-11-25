@@ -26,8 +26,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
 	int jump_count = 0;
 
-	float last_jump_direction = 0;
-
 	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
 	bool on_ground = false;
 
