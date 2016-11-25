@@ -32,8 +32,8 @@ ASQCharacter::ASQCharacter()
 	camera_arm->TargetArmLength = 300.0f;
 	camera_arm->bUsePawnControlRotation = true;
 	camera_arm->SetupAttachment(body);
-	camera_arm->bEnableCameraLag = true;
-	camera_arm->CameraLagSpeed = 15.0f;
+	//camera_arm->bEnableCameraLag = true;
+	//camera_arm->CameraLagSpeed = 15.0f;
 
 	UCameraComponent* camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	camera->SetupAttachment(camera_arm);
@@ -55,8 +55,29 @@ void ASQCharacter::Tick( float DeltaTime )
 	
 	if (!current_movement.IsNearlyZero())
 	{
-		HandleMovement(current_movement.ClampMaxSize(1.0f));
+		HandleMovement(current_movement.GetClampedToMaxSize(1.0f));
 		current_movement = FVector::ZeroVector;
+	}
+
+	//Check if on ground
+	{
+		float current_jump_direction = GetVelocity().Z;
+		float fall_change = current_jump_direction - last_jump_direction;
+
+		if (fall_change > 0)
+		{
+			if (last_jump_direction < 0)
+				on_ground = true;
+		}
+		else if(FMath::Abs(fall_change) > 7.4f)
+			on_ground = false;
+
+		if (on_ground)
+			jump_count = 0;
+		else if (jump_count == 0)
+			jump_count = 1;
+
+		last_jump_direction = current_jump_direction;
 	}
 }
 
@@ -133,7 +154,13 @@ void ASQCharacter::Input_Look_Pitch(float value)
 
 void ASQCharacter::Input_Jump_Press() 
 {
-	HandleJump();
+	if (jump_count < max_jumps)
+	{
+		jump_count++;
+		on_ground = false;
+		last_jump_direction = GetVelocity().Z;
+		HandleJump();
+	}
 }
 
 void ASQCharacter::Input_Jump_Release() 

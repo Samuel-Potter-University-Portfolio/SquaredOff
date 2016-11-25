@@ -18,6 +18,19 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	float movement_force = 130000.0f;
 
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Player|Character")
+	int max_jumps = 2;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
+	int jump_count = 0;
+
+	float last_jump_direction = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
+	bool on_ground = false;
+
 public:
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	bool invert_look = false;
