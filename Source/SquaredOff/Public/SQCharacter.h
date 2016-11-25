@@ -13,6 +13,7 @@ class SQUAREDOFF_API ASQCharacter : public APawn
 private:
 	FVector current_movement;
 	USphereComponent* body;
+	USphereComponent* hit_zone;
 
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	float movement_force = 130000.0f;

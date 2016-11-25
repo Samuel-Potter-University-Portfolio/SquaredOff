@@ -21,13 +21,19 @@ ASQCharacter::ASQCharacter()
 	body->SetCollisionProfileName(FName("BlockAll"));
 	RootComponent = body;
 
+	hit_zone = CreateDefaultSubobject<USphereComponent>(TEXT("Hit Zone"));
+	hit_zone->SetSimulatePhysics(false);
+	hit_zone->InitSphereRadius(80.0f);
+	hit_zone->SetCollisionProfileName(FName("OverlapAll"));
+	hit_zone->SetupAttachment(body);
+
 
 	USpringArmComponent* camera_arm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Arm"));
 	camera_arm->TargetArmLength = 300.0f;
 	camera_arm->bUsePawnControlRotation = true;
 	camera_arm->SetupAttachment(body);
-	//SpringArm->bEnableCameraLag = true;
-	//SpringArm->CameraLagSpeed = 3.0f;
+	camera_arm->bEnableCameraLag = true;
+	camera_arm->CameraLagSpeed = 15.0f;
 
 	UCameraComponent* camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	camera->SetupAttachment(camera_arm);
