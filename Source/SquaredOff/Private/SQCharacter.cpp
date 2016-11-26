@@ -86,16 +86,25 @@ void ASQCharacter::Tick( float DeltaTime )
 	//Attacks
 	if (attack_cooldown > 0)
 		attack_cooldown -= DeltaTime;
-	else
+
+	else if(charging_attack)
 	{
 		//Dash
-		if (charging_dash)
+		if (dash_charge)
 		{
 			dash_charge += DeltaTime / dash_charge_rate;
 
 			if (dash_charge >= 1.0f)
 				dash_charge = 1.0f;
-				//Attack_Dash();
+		}
+
+		//Ranged
+		if (ranged_charge)
+		{
+			ranged_charge += DeltaTime / ranged_charge_rate;
+
+			if (ranged_charge >= 1.0f)
+				ranged_charge = 1.0f;
 		}
 	}
 }
@@ -204,30 +213,29 @@ void ASQCharacter::Input_Jump_Release_Implementation()
 
 void ASQCharacter::Input_Dash_Press_Implementation()
 {
-	if (CanJump())
+	if (CanJump() && !charging_attack)
 	{
-		charging_dash = true;
-		dash_charge = 0.0f;
+		charging_attack = true;
+		dash_charge = 0.001f;
+		ranged_charge = 0;
 	}
 }
 
 void ASQCharacter::Input_Dash_Release_Implementation()
 {
-	if(attack_cooldown <= 0 && charging_dash)
+	if(attack_cooldown <= 0 && IsChargingDash())
 		Attack_Dash();
-	else
-		charging_dash = false;
+
+	else if (IsChargingDash())
+		charging_attack = false;
 }
 
 void ASQCharacter::Attack_Dash_Implementation()
 {
-	charging_dash = false;
+	Attack();
 	jump_count++;
-	attack_cooldown = attack_duration;
-
 
 	FVector direction = UKismetMathLibrary::GetForwardVector(camera->GetComponentRotation());
-	GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White, direction.ToString());
 	Attack_Dash_Server(direction, dash_charge);
 }
 
@@ -245,12 +253,21 @@ bool ASQCharacter::Attack_Dash_Server_Validate(const FVector direction, const fl
 
 void ASQCharacter::Input_Ranged_Press_Implementation()
 {
+	if (attack_cooldown <= 0 && !charging_attack)
+	{
+		charging_attack = true;
+		ranged_charge = 0.001f;
+		dash_charge = 0;
+	}
 }
 
 void ASQCharacter::Input_Ranged_Release_Implementation()
 {
+	if (IsChargingRanged())
+		Attack_Ranged();
 }
 
 void ASQCharacter::Attack_Ranged_Implementation()
 {
+	Attack();
 }
