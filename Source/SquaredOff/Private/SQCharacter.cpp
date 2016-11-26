@@ -23,7 +23,7 @@ ASQCharacter::ASQCharacter()
 
 	hit_zone = CreateDefaultSubobject<USphereComponent>(TEXT("Hit Zone"));
 	hit_zone->SetSimulatePhysics(false);
-	hit_zone->InitSphereRadius(80.0f);
+	hit_zone->InitSphereRadius(100.0f);
 	hit_zone->SetCollisionProfileName(FName("OverlapAll"));
 	hit_zone->SetupAttachment(body);
 
@@ -82,7 +82,44 @@ void ASQCharacter::Tick( float DeltaTime )
 		else if (jump_count == 0)
 			jump_count = 1;
 	}
+
+	//Attacks
+	if (attack_cooldown > 0)
+		attack_cooldown -= DeltaTime;
+	else
+	{
+		//Dash
+		if (charging_dash)
+		{
+			dash_charge += DeltaTime / dash_charge_rate;
+
+			if (dash_charge >= 1.0f)
+				dash_charge = 1.0f;
+				//Attack_Dash();
+		}
+	}
 }
+
+void ASQCharacter::SetupPlayerInputComponent(class UInputComponent* input)
+{
+	input->BindAxis("Forward", this, &ASQCharacter::Input_Move_Forward);
+	input->BindAxis("Strafe", this, &ASQCharacter::Input_Move_Strafe);
+	input->BindAxis("Look Yaw", this, &ASQCharacter::Input_Look_Yaw);
+	input->BindAxis("Look Pitch", this, &ASQCharacter::Input_Look_Pitch);
+
+	input->BindAction("Jump", IE_Pressed, this, &ASQCharacter::Input_Jump_Press);
+	input->BindAction("Jump", IE_Released, this, &ASQCharacter::Input_Jump_Release);
+
+	input->BindAction("Dash", IE_Pressed, this, &ASQCharacter::Input_Dash_Press);
+	input->BindAction("Dash", IE_Released, this, &ASQCharacter::Input_Dash_Release);
+
+	input->BindAction("Ranged", IE_Pressed, this, &ASQCharacter::Input_Ranged_Press);
+	input->BindAction("Ranged", IE_Released, this, &ASQCharacter::Input_Ranged_Release);
+
+	Super::SetupPlayerInputComponent(input);
+}
+
+/*Server-side movement*/
 
 void ASQCharacter::HandleMovement_Implementation(FVector movement_input)
 {
@@ -104,22 +141,11 @@ bool ASQCharacter::HandleJump_Validate()
 	return Role >= ROLE_AutonomousProxy;
 }
 
-void ASQCharacter::SetupPlayerInputComponent(class UInputComponent* input)
-{
-	input->BindAxis("Forward", this, &ASQCharacter::Input_Move_Forward);
-	input->BindAxis("Strafe", this, &ASQCharacter::Input_Move_Strafe);
-	input->BindAxis("Look Yaw", this, &ASQCharacter::Input_Look_Yaw);
-	input->BindAxis("Look Pitch", this, &ASQCharacter::Input_Look_Pitch);
-
-	input->BindAction("Jump", IE_Pressed, this, &ASQCharacter::Input_Jump_Press);
-	input->BindAction("Jump", IE_Released, this, &ASQCharacter::Input_Jump_Release);
-
-	Super::SetupPlayerInputComponent(input);
-}
+/*Movement*/
 
 void ASQCharacter::Input_Move_Forward(float value)
 {
-	if (value)
+	if (value && can_move)
 	{
 		FVector direction = UKismetMathLibrary::GetForwardVector(GetControlRotation());
 		direction.Z = 0;
@@ -133,7 +159,7 @@ void ASQCharacter::Input_Move_Forward(float value)
 
 void ASQCharacter::Input_Move_Strafe(float value) 
 {
-	if (value)
+	if (value && can_move)
 	{
 		FVector direction = UKismetMathLibrary::GetRightVector(GetControlRotation());
 		direction.Z = 0;
@@ -142,6 +168,8 @@ void ASQCharacter::Input_Move_Strafe(float value)
 			current_movement += direction * value;
 	}
 }
+
+/*Looking*/
 
 void ASQCharacter::Input_Look_Yaw(float value) 
 {
@@ -155,9 +183,11 @@ void ASQCharacter::Input_Look_Pitch(float value)
 		AddControllerPitchInput(invert_look ? value : -value);
 }
 
-void ASQCharacter::Input_Jump_Press() 
+/*Jumping*/
+
+void ASQCharacter::Input_Jump_Press_Implementation()
 {
-	if (jump_count < max_jumps && jump_cooldown <= 0)
+	if (CanJump())
 	{
 		jump_count++;
 		jump_cooldown = 0.3;
@@ -166,6 +196,58 @@ void ASQCharacter::Input_Jump_Press()
 	}
 }
 
-void ASQCharacter::Input_Jump_Release() 
+void ASQCharacter::Input_Jump_Release_Implementation()
+{
+}
+
+/*Dash*/
+
+void ASQCharacter::Input_Dash_Press_Implementation()
+{
+	if (CanJump())
+	{
+		charging_dash = true;
+		dash_charge = 0.0f;
+	}
+}
+
+void ASQCharacter::Input_Dash_Release_Implementation()
+{
+	if(attack_cooldown <= 0 && charging_dash)
+		Attack_Dash();
+	else
+		charging_dash = false;
+}
+
+void ASQCharacter::Attack_Dash_Implementation()
+{
+	charging_dash = false;
+	jump_count++;
+	attack_cooldown = attack_duration;
+	Attack_Dash_Server(dash_charge);
+}
+
+void ASQCharacter::Attack_Dash_Server_Implementation(const float dash_amount)
+{
+	FVector direction = UKismetMathLibrary::GetForwardVector(GetControlRotation());
+	body->AddForce(direction * (10000000.0f + 5000000.0f * dash_amount));
+}
+
+bool ASQCharacter::Attack_Dash_Server_Validate(const float dash_amount)
+{
+	return Role >= ROLE_AutonomousProxy;
+}
+
+/*Ranged*/
+
+void ASQCharacter::Input_Ranged_Press_Implementation()
+{
+}
+
+void ASQCharacter::Input_Ranged_Release_Implementation()
+{
+}
+
+void ASQCharacter::Attack_Ranged_Implementation()
 {
 }
