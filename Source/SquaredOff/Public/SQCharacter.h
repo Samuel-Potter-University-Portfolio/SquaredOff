@@ -22,10 +22,10 @@ private:
 	UCameraComponent* camera;
 
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
-	float movement_force = 110000.0f;
+	float movement_force = 100000.0f;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Player|Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player|Character")
 	int max_jumps = 2;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
@@ -81,7 +81,7 @@ protected:
 	bool charging_dash = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Player|Character|Attack")
 	float dash_charge = 0;
-	UPROPERTY(EditAnywhere, Category = "Player|Character|Attack")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player|Character|Attack")
 	float dash_charge_rate = 3.0f;
 
 public:
