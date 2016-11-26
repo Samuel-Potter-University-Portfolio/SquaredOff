@@ -1,0 +1,2 @@
+SquaredOff.VC.db filter=lfs diff=lfs merge=lfs -text
+*.ulevel filter=lfs diff=lfs merge=lfs -text
