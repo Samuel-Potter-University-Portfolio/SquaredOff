@@ -12,7 +12,11 @@ class SQUAREDOFF_API ASQCharacter : public APawn
 	GENERATED_BODY()
 private:
 	FVector current_movement;
+
+	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	USphereComponent* body;
+
+	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	USphereComponent* hit_zone;
 
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
@@ -25,6 +29,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
 	int jump_count = 0;
+	float jump_cooldown = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
 	bool on_ground = false;

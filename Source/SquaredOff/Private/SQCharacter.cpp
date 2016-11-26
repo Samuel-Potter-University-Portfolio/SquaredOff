@@ -66,6 +66,9 @@ void ASQCharacter::Tick( float DeltaTime )
 		params.AddIgnoredActor(this);
 		FVector location = GetActorLocation();
 
+		if (jump_cooldown > 0)
+			jump_cooldown -= DeltaTime;
+
 		on_ground = GetWorld()->LineTraceSingleByChannel(
 			hit, 
 			location,
@@ -154,11 +157,11 @@ void ASQCharacter::Input_Look_Pitch(float value)
 
 void ASQCharacter::Input_Jump_Press() 
 {
-	if (jump_count < max_jumps)
+	if (jump_count < max_jumps && jump_cooldown <= 0)
 	{
 		jump_count++;
+		jump_cooldown = 0.3;
 		on_ground = false;
-		last_jump_direction = GetVelocity().Z;
 		HandleJump();
 	}
 }
