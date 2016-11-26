@@ -35,7 +35,7 @@ ASQCharacter::ASQCharacter()
 	//camera_arm->bEnableCameraLag = true;
 	//camera_arm->CameraLagSpeed = 15.0f;
 
-	UCameraComponent* camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	camera->SetupAttachment(camera_arm);
 	
 
@@ -224,16 +224,19 @@ void ASQCharacter::Attack_Dash_Implementation()
 	charging_dash = false;
 	jump_count++;
 	attack_cooldown = attack_duration;
-	Attack_Dash_Server(dash_charge);
+
+
+	FVector direction = UKismetMathLibrary::GetForwardVector(camera->GetComponentRotation());
+	GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White, direction.ToString());
+	Attack_Dash_Server(direction, dash_charge);
 }
 
-void ASQCharacter::Attack_Dash_Server_Implementation(const float dash_amount)
+void ASQCharacter::Attack_Dash_Server_Implementation(const FVector direction, const float dash_amount)
 {
-	FVector direction = UKismetMathLibrary::GetForwardVector(GetControlRotation());
 	body->AddForce(direction * (10000000.0f + 5000000.0f * dash_amount));
 }
 
-bool ASQCharacter::Attack_Dash_Server_Validate(const float dash_amount)
+bool ASQCharacter::Attack_Dash_Server_Validate(const FVector direction, const float dash_amount)
 {
 	return Role >= ROLE_AutonomousProxy;
 }

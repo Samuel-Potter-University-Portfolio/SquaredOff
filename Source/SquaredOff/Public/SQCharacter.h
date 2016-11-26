@@ -19,6 +19,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	USphereComponent* hit_zone;
 
+	UCameraComponent* camera;
 
 	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	float movement_force = 110000.0f;
@@ -69,6 +70,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Player|Character")
 	inline bool CanJump() { return (jump_count < max_jumps && jump_cooldown <= 0); }
 
+
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Player|Character|Attack")
 	float attack_cooldown = 0.0f;
@@ -90,7 +92,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Attack")
 	void Attack_Dash();
 	UFUNCTION(Server, WithValidation, Reliable)
-	void Attack_Dash_Server(const float dash_amount);
+	void Attack_Dash_Server(const FVector direction, const float dash_amount);
 
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Input")
