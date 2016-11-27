@@ -32,12 +32,15 @@ ASQCharacter::ASQCharacter()
 	camera_arm->TargetArmLength = 300.0f;
 	camera_arm->bUsePawnControlRotation = true;
 	camera_arm->SetupAttachment(body);
+	camera_arm->SetRelativeLocation(FVector(0, 0, 50.0f));
 	//camera_arm->bEnableCameraLag = true;
 	//camera_arm->CameraLagSpeed = 15.0f;
 
 	camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	camera->SetupAttachment(camera_arm);
 	
+	attack_component = CreateDefaultSubobject<USQAttackComponent>(TEXT("Attack Component"));
+	attack_component->affected_body = body;
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
@@ -81,31 +84,6 @@ void ASQCharacter::Tick( float DeltaTime )
 			jump_count = 0;
 		else if (jump_count == 0)
 			jump_count = 1;
-	}
-
-	//Attacks
-	if (attack_cooldown > 0)
-		attack_cooldown -= DeltaTime;
-
-	else if(charging_attack)
-	{
-		//Dash
-		if (dash_charge)
-		{
-			dash_charge += DeltaTime / dash_charge_rate;
-
-			if (dash_charge >= 1.0f)
-				dash_charge = 1.0f;
-		}
-
-		//Ranged
-		if (ranged_charge)
-		{
-			ranged_charge += DeltaTime / ranged_charge_rate;
-
-			if (ranged_charge >= 1.0f)
-				ranged_charge = 1.0f;
-		}
 	}
 }
 
@@ -209,65 +187,29 @@ void ASQCharacter::Input_Jump_Release_Implementation()
 {
 }
 
-/*Dash*/
+/* Attack inputs*/
+
+/* Dash */
 
 void ASQCharacter::Input_Dash_Press_Implementation()
 {
-	if (CanJump() && !charging_attack)
-	{
-		charging_attack = true;
-		dash_charge = 0.001f;
-		ranged_charge = 0;
-	}
+	if (CanJump() && attack_component->BeginAttackCharge(EAttackType::Dash))
+		jump_count++;
 }
 
 void ASQCharacter::Input_Dash_Release_Implementation()
 {
-	if(attack_cooldown <= 0 && IsChargingDash())
-		Attack_Dash();
-
-	else if (IsChargingDash())
-		charging_attack = false;
+	attack_component->UnleashAttack(EAttackType::Dash);
 }
 
-void ASQCharacter::Attack_Dash_Implementation()
-{
-	Attack();
-	jump_count++;
-
-	FVector direction = UKismetMathLibrary::GetForwardVector(camera->GetComponentRotation());
-	Attack_Dash_Server(direction, dash_charge);
-}
-
-void ASQCharacter::Attack_Dash_Server_Implementation(const FVector direction, const float dash_amount)
-{
-	body->AddForce(direction * (10000000.0f + 5000000.0f * dash_amount));
-}
-
-bool ASQCharacter::Attack_Dash_Server_Validate(const FVector direction, const float dash_amount)
-{
-	return Role >= ROLE_AutonomousProxy;
-}
-
-/*Ranged*/
+/* Ranged */
 
 void ASQCharacter::Input_Ranged_Press_Implementation()
 {
-	if (attack_cooldown <= 0 && !charging_attack)
-	{
-		charging_attack = true;
-		ranged_charge = 0.001f;
-		dash_charge = 0;
-	}
+	attack_component->BeginAttackCharge(EAttackType::Ranged);
 }
 
 void ASQCharacter::Input_Ranged_Release_Implementation()
 {
-	if (IsChargingRanged())
-		Attack_Ranged();
-}
-
-void ASQCharacter::Attack_Ranged_Implementation()
-{
-	Attack();
+	attack_component->UnleashAttack(EAttackType::Ranged);
 }

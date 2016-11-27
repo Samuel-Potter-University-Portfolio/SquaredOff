@@ -3,7 +3,7 @@
 #pragma once
 
 #include "GameFramework/Pawn.h"
-#include "SQMovementComponent.h"
+#include "SQAttackComponent.h"
 #include "SQCharacter.generated.h"
 
 UCLASS()
@@ -13,33 +13,36 @@ class SQUAREDOFF_API ASQCharacter : public APawn
 private:
 	FVector current_movement;
 
-	UPROPERTY(EditAnywhere, Category = "Player|Character")
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	USphereComponent* body;
 
-	UPROPERTY(EditAnywhere, Category = "Player|Character")
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	USphereComponent* hit_zone;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	UCameraComponent* camera;
 
-	UPROPERTY(EditAnywhere, Category = "Player|Character")
 	float movement_force = 100000.0f;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player|Attack")
+	USQAttackComponent* attack_component;
+
 protected:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player|Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player|Movement")
 	int max_jumps = 2;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Player|Movement")
 	int jump_count = 0;
 	float jump_cooldown = 0;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Player|Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Player|Movement")
 	bool on_ground = false;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Player|Character")
+	UPROPERTY(BlueprintReadWrite, Category = "Player|Movement")
 	bool can_move = true;
 
 public:
-	UPROPERTY(BlueprintReadWrite, Category = "Player|Character")
+	UPROPERTY(BlueprintReadWrite, Category = "Player|Input")
 	bool invert_look = false;
 
 	UFUNCTION(Server, WithValidation, Reliable)
@@ -62,64 +65,21 @@ public:
 	virtual void Input_Look_Yaw(float value);
 	virtual void Input_Look_Pitch(float value);
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Input")
+	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Jump_Press();
-	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Input")
+	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Jump_Release();
 
-	UFUNCTION(BlueprintPure, Category = "Player|Character")
+	UFUNCTION(BlueprintPure, Category = "Player|Movement")
 	inline bool CanJump() { return (jump_count < max_jumps && jump_cooldown <= 0); }
 
-	/*Attacks*/
-
-protected:
-	UPROPERTY(BlueprintReadOnly, Category = "Player|Character|Attack")
-	float attack_cooldown = 0.0f;
-	UPROPERTY(EditAnywhere, Category = "Player|Character|Attack")
-	float attack_duration = 1.5f;
-	UPROPERTY(BlueprintReadOnly, Category = "Player|Character|Attack")
-	bool charging_attack = false;
-
-	/*Dash*/
-
-protected:
-	UPROPERTY(BlueprintReadOnly, Category = "Player|Character|Attack")
-	float dash_charge = 0;
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player|Character|Attack")
-	float dash_charge_rate = 3.0f;
-	void Attack() 
-	{
-		charging_attack = false;
-		attack_cooldown = attack_duration;
-	}
-
-public:
-	UFUNCTION(BlueprintPure, Category = "Player|Character|Attack")
-	inline bool IsChargingDash() { return charging_attack && dash_charge; }
-	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Input")
+	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Dash_Press();
-	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Input")
+	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Dash_Release();
-	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Attack")
-	void Attack_Dash();
-	UFUNCTION(Server, WithValidation, Reliable)
-	void Attack_Dash_Server(const FVector direction, const float dash_amount);
 
-	/*Ranged*/
-
-protected:
-	UPROPERTY(BlueprintReadOnly, Category = "Player|Character|Attack")
-	float ranged_charge = 0;
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player|Character|Attack")
-	float ranged_charge_rate = 3.0f;
-
-public:
-	UFUNCTION(BlueprintPure, Category = "Player|Character|Attack")
-	inline bool IsChargingRanged() { return charging_attack && ranged_charge; }
-	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Input")
+	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Ranged_Press();
-	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Input")
+	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Ranged_Release();
-	UFUNCTION(BlueprintNativeEvent, Category = "Player|Character|Attack")
-	void Attack_Ranged();
 };
