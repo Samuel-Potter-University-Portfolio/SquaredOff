@@ -19,6 +19,8 @@ void USQAttackComponent::TickComponent( float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 
+	//GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::White, *FString::Printf(TEXT("Woo %i"), (int)GetOwnerRole()));
+
 	if (attack_cooldown > 0)
 	{
 		attack_cooldown -= DeltaTime;
@@ -30,6 +32,22 @@ void USQAttackComponent::TickComponent( float DeltaTime, ELevelTick TickType, FA
 	if (current_attack == EAttackType::None)
 		return;
 
+	if (current_attack == EAttackType::Shield)
+	{
+		attack_charge -= DeltaTime;
+
+		if (attack_charge <= 0)
+		{
+			current_attack = EAttackType::None;
+			attack_cooldown = 1.0f;
+			attack_charge = 0.0f;
+
+			ShieldEnd();
+		}
+		return;
+	}
+	
+
 	attack_charge += DeltaTime / current_charge_rate;
 
 	if (attack_charge > 1.0f)
@@ -38,7 +56,7 @@ void USQAttackComponent::TickComponent( float DeltaTime, ELevelTick TickType, FA
 
 bool USQAttackComponent::BeginAttackCharge(const EAttackType attack_type)
 {
-	if (current_attack != EAttackType::None)
+	if (current_attack != EAttackType::None || attack_cooldown > 0.0f)
 		return false;
 
 	current_attack = attack_type;
@@ -49,10 +67,12 @@ bool USQAttackComponent::BeginAttackCharge(const EAttackType attack_type)
 		BeginDashCharge();
 		break;
 	case EAttackType::Ranged:
+		BeginRangedCharge();
 		break;
 	case EAttackType::Item:
 		break;
 	case EAttackType::Shield:
+		ShieldStart();
 		break;
 	};
 
@@ -73,13 +93,14 @@ bool USQAttackComponent::UnleashAttack(const EAttackType attack_type)
 			UnleashDash();
 			break;
 		case EAttackType::Ranged:
+			UnleashRanged();
 			break;
 		case EAttackType::Item:
 			break;
 		case EAttackType::Shield:
 			break;
 		};
-		attack_cooldown = 1.5;
+		attack_cooldown = 1.0f;
 		attack_charge = 0.0f;
 	}
 
@@ -113,6 +134,91 @@ void USQAttackComponent::UnleashDash_Server_Implementation(const FVector directi
 }
 
 bool USQAttackComponent::UnleashDash_Server_Validate(const FVector direction, const float dash_amount)
+{
+	return true;
+}
+
+/* RANGED */
+
+void USQAttackComponent::BeginRangedCharge()
+{
+	current_charge_rate = ranged_charge_rate;
+	
+	BeginRangedCharge_Server();
+
+	if (OnRangedBeginCharge.IsBound())
+		OnRangedBeginCharge.Broadcast();
+}
+
+void USQAttackComponent::UnleashRanged()
+{
+	APawn* owner = (APawn*)GetOwner();
+	FVector direction = UKismetMathLibrary::GetForwardVector(owner->GetControlRotation());
+
+	UnleashRanged_Server(direction);
+	
+	if (OnRangedUnleashCharge.IsBound())
+		OnRangedUnleashCharge.Broadcast();
+}
+
+void USQAttackComponent::BeginRangedCharge_Server_Implementation()
+{
+	APawn* owner = (APawn*)GetOwner();
+
+	if (GetWorld() && owner)
+	{
+		FVector location = owner->GetActorLocation();
+		FRotator rotation(0, 0, 0);
+		FActorSpawnParameters params;
+		projectile = GetWorld()->SpawnActor<ASQRangedProjectile>(projectile_type, location, rotation, params);
+
+		projectile->Attach(owner);
+		projectile->charge_rate = ranged_charge_rate;
+	}
+}
+
+bool USQAttackComponent::BeginRangedCharge_Server_Validate()
+{
+	return true;
+}
+
+void USQAttackComponent::UnleashRanged_Server_Implementation(const FVector direction)
+{
+	if (projectile)
+	{
+		projectile->Detach();
+		projectile->hit_zone->AddForce(direction * 60000000.0f);
+	}
+}
+
+bool USQAttackComponent::UnleashRanged_Server_Validate(const FVector direction)
+{
+	return true;
+}
+
+/* SHIELD */
+
+void USQAttackComponent::ShieldStart()
+{
+	attack_charge = shield_duration;
+
+	if (OnShieldStart.IsBound())
+		OnShieldStart.Broadcast();
+}
+
+void USQAttackComponent::ShieldEnd()
+{
+	if (OnShieldEndSuccess.IsBound())
+		OnShieldEndSuccess.Broadcast();
+	if (OnShieldEndFail.IsBound())
+		OnShieldEndFail.Broadcast();
+}
+
+void USQAttackComponent::ShieldStart_Server_Implementation()
+{
+}
+
+bool USQAttackComponent::ShieldStart_Server_Validate()
 {
 	return true;
 }

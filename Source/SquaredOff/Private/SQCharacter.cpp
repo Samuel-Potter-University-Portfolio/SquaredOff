@@ -53,8 +53,10 @@ void ASQCharacter::BeginPlay()
 
 void ASQCharacter::Tick( float DeltaTime )
 {
-	Super::Tick( DeltaTime );
+	Super::Tick(DeltaTime);
 
+	if (Role != ROLE_AutonomousProxy)
+		return;
 	
 	if (!current_movement.IsNearlyZero())
 	{
@@ -115,17 +117,18 @@ void ASQCharacter::HandleMovement_Implementation(FVector movement_input)
 
 bool ASQCharacter::HandleMovement_Validate(FVector movement_input)
 {
-	return Role >= ROLE_AutonomousProxy;
+	return true;
 }
 
 void ASQCharacter::HandleJump_Implementation()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, *FString::Printf(TEXT("WooP")));
 	body->AddForce(FVector(0.0f, 0.0f, 100000.0f), NAME_None, true);
 }
 
 bool ASQCharacter::HandleJump_Validate()
 {
-	return Role >= ROLE_AutonomousProxy;
+	return true;
 }
 
 /*Movement*/

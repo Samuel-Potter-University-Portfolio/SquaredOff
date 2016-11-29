@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
+#include "SQRangedProjectile.h"
 #include "SQAttackComponent.generated.h"
 
 
@@ -49,10 +50,10 @@ public:
 	virtual bool BeginAttackCharge(const EAttackType attack_type);
 	UFUNCTION(BlueprintCallable, Category = "Player|Attack")
 	virtual bool UnleashAttack(const EAttackType attack_type);
-
+	
 	/* Dash */
 public:
-	UPROPERTY(VisibleDefaultsOnly, Category = "Player|Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Player|Attack")
 	float dash_charge_rate = 3.0f;
 	UPROPERTY(BlueprintAssignable, Category = "Player|Attack")
 	FAttackFunction OnDashBeginCharge; 
@@ -63,4 +64,41 @@ public:
 	void UnleashDash();
 	UFUNCTION(Server, Reliable, WithValidation)
 	void UnleashDash_Server(const FVector direction, const float dash_amount);
+
+	/* Ranged */
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "Player|Attack")
+	float ranged_charge_rate = 3.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Player|Attack")
+	TSubclassOf<ASQRangedProjectile> projectile_type = ASQRangedProjectile::StaticClass();
+	UPROPERTY()
+	ASQRangedProjectile* projectile;
+
+	UPROPERTY(BlueprintAssignable, Category = "Player|Attack")
+	FAttackFunction OnRangedBeginCharge;
+	UPROPERTY(BlueprintAssignable, Category = "Player|Attack")
+	FAttackFunction OnRangedUnleashCharge;
+
+	void BeginRangedCharge();
+	void UnleashRanged();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void BeginRangedCharge_Server();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void UnleashRanged_Server(const FVector direction);
+
+	/* Shield */
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "Player|Attack")
+	float shield_duration = 2.0f;
+	UPROPERTY(BlueprintAssignable, Category = "Player|Attack")
+	FAttackFunction OnShieldStart;
+	UPROPERTY(BlueprintAssignable, Category = "Player|Attack")
+	FAttackFunction OnShieldEndSuccess;
+	UPROPERTY(BlueprintAssignable, Category = "Player|Attack")
+	FAttackFunction OnShieldEndFail;
+
+	void ShieldStart();
+	void ShieldEnd();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ShieldStart_Server();
 };
