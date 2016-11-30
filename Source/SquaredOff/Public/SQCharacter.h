@@ -4,6 +4,7 @@
 
 #include "GameFramework/Pawn.h"
 #include "SQAttackComponent.h"
+#include "SQMovementComponent.h"
 #include "SQCharacter.generated.h"
 
 UCLASS()
@@ -21,39 +22,29 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	UCameraComponent* camera;
-
-	float movement_force = 100000.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, Category = "Player|Attack")
+	
+	UPROPERTY(VisibleDefaultsOnly, Category = "Attack")
 	USQAttackComponent* attack_component;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = "Movement")
+	USQMovementComponent* cube_movement;
+
 protected:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player|Movement")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Movement")
 	int max_jumps = 2;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Player|Movement")
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	int jump_count = 0;
 	float jump_cooldown = 0;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Player|Movement")
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	bool on_ground = false;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Player|Movement")
-	bool can_move = true;
-
 public:
-	UPROPERTY(BlueprintReadWrite, Category = "Player|Input")
+	UPROPERTY(BlueprintReadWrite, Category = "Input")
 	bool invert_look = false;
 
-	UFUNCTION(Server, WithValidation, Reliable)
-	void HandleMovement(FVector movement_input);
-
-	UFUNCTION(Server, WithValidation, Reliable)
-	void HandleJump();
-
-
 	ASQCharacter();
-
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;

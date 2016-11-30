@@ -38,9 +38,13 @@ ASQCharacter::ASQCharacter()
 
 	camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	camera->SetupAttachment(camera_arm);
-	
+
+	cube_movement = CreateDefaultSubobject<USQMovementComponent>(TEXT("Movement Component"));
+	cube_movement->UpdatedComponent = body;
+
 	attack_component = CreateDefaultSubobject<USQAttackComponent>(TEXT("Attack Component"));
 	attack_component->affected_body = body;
+	attack_component->affected_movement = cube_movement;
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
@@ -55,16 +59,10 @@ void ASQCharacter::Tick( float DeltaTime )
 {
 	Super::Tick(DeltaTime);
 
-	if (Role != ROLE_AutonomousProxy)
+	if (Role < ROLE_AutonomousProxy)
 		return;
 	
-	if (!current_movement.IsNearlyZero())
-	{
-		HandleMovement(current_movement.GetClampedToMaxSize(1.0f));
-		current_movement = FVector::ZeroVector;
-	}
-
-	//Check if on ground (TODO - Fix for double jumps)
+	//Check if on ground
 	{
 		FHitResult hit;
 		FCollisionQueryParams params;
@@ -108,54 +106,29 @@ void ASQCharacter::SetupPlayerInputComponent(class UInputComponent* input)
 	Super::SetupPlayerInputComponent(input);
 }
 
-/*Server-side movement*/
-
-void ASQCharacter::HandleMovement_Implementation(FVector movement_input)
-{
-	body->AddForce(movement_input * movement_force);// , NAME_None, true);
-}
-
-bool ASQCharacter::HandleMovement_Validate(FVector movement_input)
-{
-	return true;
-}
-
-void ASQCharacter::HandleJump_Implementation()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, *FString::Printf(TEXT("WooP")));
-	body->AddForce(FVector(0.0f, 0.0f, 100000.0f), NAME_None, true);
-}
-
-bool ASQCharacter::HandleJump_Validate()
-{
-	return true;
-}
-
 /*Movement*/
 
 void ASQCharacter::Input_Move_Forward(float value)
 {
-	if (value && can_move)
+	if (value)
 	{
 		FVector direction = UKismetMathLibrary::GetForwardVector(GetControlRotation());
 		direction.Z = 0;
 
 		if (direction.SizeSquared2D() && direction.Normalize())
-		{
-			current_movement += direction * value;
-		}
+			AddMovementInput(direction * value);
 	}
 }
 
 void ASQCharacter::Input_Move_Strafe(float value) 
 {
-	if (value && can_move)
+	if (value)
 	{
 		FVector direction = UKismetMathLibrary::GetRightVector(GetControlRotation());
 		direction.Z = 0;
 
 		if (direction.SizeSquared2D() && direction.Normalize())
-			current_movement += direction * value;
+			AddMovementInput(direction * value);
 	}
 }
 
@@ -180,9 +153,9 @@ void ASQCharacter::Input_Jump_Press_Implementation()
 	if (CanJump())
 	{
 		jump_count++;
-		jump_cooldown = 0.3;
+		jump_cooldown = 0.5;
 		on_ground = false;
-		HandleJump();
+		cube_movement->Jump();
 	}
 }
 

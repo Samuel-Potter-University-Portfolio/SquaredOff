@@ -121,21 +121,15 @@ void USQAttackComponent::BeginDashCharge()
 void USQAttackComponent::UnleashDash()
 {
 	APawn* owner = (APawn*)GetOwner();
+	if (!owner && !affected_movement)
+		return;
+
 	FVector direction = UKismetMathLibrary::GetForwardVector(owner->GetControlRotation());
-	UnleashDash_Server(direction, attack_charge);
+	float factor = min_dash_force + (max_dash_force - min_dash_force) * attack_charge;
+	affected_movement->AddMovementForce(direction * factor);
 
 	if (OnDashUnleashCharge.IsBound())
 		OnDashUnleashCharge.Broadcast();
-}
-
-void USQAttackComponent::UnleashDash_Server_Implementation(const FVector direction, const float dash_amount)
-{
-	affected_body->AddForce(direction * (10000000.0f + 5000000.0f * dash_amount));
-}
-
-bool USQAttackComponent::UnleashDash_Server_Validate(const FVector direction, const float dash_amount)
-{
-	return true;
 }
 
 /* RANGED */

@@ -8,24 +8,31 @@ void USQMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// Make sure that everything is still valid, and that we are allowed to move.
-	if (!PawnOwner || !UpdatedComponent || ShouldSkipUpdate(DeltaTime))
-	{
+	if (!affected_body)
+		affected_body = (UPrimitiveComponent*) UpdatedComponent;
+
+	if (!PawnOwner || !UpdatedComponent || !affected_body)
 		return;
-	}
 
-	// Get (and then clear) the movement vector that we set in ACollidingPawn::Tick
-	FVector DesiredMovementThisFrame = ConsumeInputVector().GetClampedToMaxSize(1.0f) * DeltaTime * 150.0f;
-	if (!DesiredMovementThisFrame.IsNearlyZero())
-	{
-		FHitResult Hit;
-		SafeMoveUpdatedComponent(DesiredMovementThisFrame, UpdatedComponent->GetComponentRotation(), true, Hit);
 
-		// If we bumped into something, try to slide along it
-		if (Hit.IsValidBlockingHit())
-		{
-			SlideAlongSurface(DesiredMovementThisFrame, 1.f - Hit.Time, Hit.Normal, Hit);
-		}
-	}
+	FVector frame_impulse = ConsumeInputVector().GetClampedToMaxSize(1.0f)  * move_speed * DeltaTime;
+	HandleMovement(
+		can_move ? frame_impulse + additional_force : additional_force,
+		jumped_this_frame
+		);
+
+	jumped_this_frame = false;
+	additional_force = FVector::ZeroVector;
 }
 
+void USQMovementComponent::HandleMovement_Implementation(const FVector movement_input, const bool jumped)
+{
+	affected_body->AddImpulse(movement_input);
+
+	if (jumped)
+		affected_body->AddImpulse(FVector(0, 0, jump_force));
+}
+bool USQMovementComponent::HandleMovement_Validate(const FVector movement_input, const bool jumped)
+{
+	return true;
+}
