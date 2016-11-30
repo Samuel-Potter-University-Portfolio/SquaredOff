@@ -29,16 +29,11 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Movement")
 	USQMovementComponent* cube_movement;
 
-protected:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Movement")
-	int max_jumps = 2;
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	inline bool OnGround() { return cube_movement ? cube_movement->OnGround() : false; }
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	int jump_count = 0;
-	float jump_cooldown = 0;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	bool on_ground = false;
+	UFUNCTION(BlueprintPure, Category = "Player|Movement")
+	inline bool CanJump() { return cube_movement ? cube_movement->CanJump() : false; }
 
 public:
 	UPROPERTY(BlueprintReadWrite, Category = "Input")
@@ -60,9 +55,6 @@ public:
 	void Input_Jump_Press();
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Jump_Release();
-
-	UFUNCTION(BlueprintPure, Category = "Player|Movement")
-	inline bool CanJump() { return (jump_count < max_jumps && jump_cooldown <= 0); }
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Dash_Press();

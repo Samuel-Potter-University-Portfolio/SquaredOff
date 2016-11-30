@@ -59,32 +59,8 @@ void ASQCharacter::Tick( float DeltaTime )
 {
 	Super::Tick(DeltaTime);
 
-	if (Role < ROLE_AutonomousProxy)
-		return;
-	
-	//Check if on ground
-	{
-		FHitResult hit;
-		FCollisionQueryParams params;
-		params.AddIgnoredActor(this);
-		FVector location = GetActorLocation();
-
-		if (jump_cooldown > 0)
-			jump_cooldown -= DeltaTime;
-
-		on_ground = GetWorld()->LineTraceSingleByChannel(
-			hit, 
-			location,
-			location + FVector(0,0,-100),
-			ECC_WorldStatic,
-			params
-		);
-
-		if (on_ground)
-			jump_count = 0;
-		else if (jump_count == 0)
-			jump_count = 1;
-	}
+	//if (Role < ROLE_AutonomousProxy)
+	//	return;
 }
 
 void ASQCharacter::SetupPlayerInputComponent(class UInputComponent* input)
@@ -150,13 +126,7 @@ void ASQCharacter::Input_Look_Pitch(float value)
 
 void ASQCharacter::Input_Jump_Press_Implementation()
 {
-	if (CanJump())
-	{
-		jump_count++;
-		jump_cooldown = 0.5;
-		on_ground = false;
-		cube_movement->Jump();
-	}
+	cube_movement->Jump();
 }
 
 void ASQCharacter::Input_Jump_Release_Implementation()
@@ -170,7 +140,7 @@ void ASQCharacter::Input_Jump_Release_Implementation()
 void ASQCharacter::Input_Dash_Press_Implementation()
 {
 	if (CanJump() && attack_component->BeginAttackCharge(EAttackType::Dash))
-		jump_count++;
+		cube_movement->IncrementJumpCount();
 }
 
 void ASQCharacter::Input_Dash_Release_Implementation()
