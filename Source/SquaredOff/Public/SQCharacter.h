@@ -5,28 +5,29 @@
 #include "GameFramework/Pawn.h"
 #include "SQAttackComponent.h"
 #include "SQMovementComponent.h"
+#include "SQKnockablePawn.h"
 #include "SQCharacter.generated.h"
 
 UCLASS()
-class SQUAREDOFF_API ASQCharacter : public APawn
+class SQUAREDOFF_API ASQCharacter : public ASQKnockablePawn
 {
 	GENERATED_BODY()
-private:
+protected:
 	FVector current_movement;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Player")
 	USphereComponent* body;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Player")
 	USphereComponent* hit_zone;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Player")
 	UCameraComponent* camera;
 	
-	UPROPERTY(VisibleDefaultsOnly, Category = "Attack")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Attack")
 	USQAttackComponent* attack_component;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Movement")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Movement")
 	USQMovementComponent* cube_movement;
 
 	UFUNCTION(BlueprintPure, Category = "Movement")
@@ -65,4 +66,9 @@ public:
 	void Input_Ranged_Press();
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Ranged_Release();
+
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* overlapped_comp, AActor* other_actor, UPrimitiveComponent* other_comp, int32 other_body_index, bool from_sweep, const FHitResult& sweep_result);
+	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
+	void OnContactKnockable(AActor* actor);
 };

@@ -12,7 +12,6 @@ ASQCharacter::ASQCharacter()
 	SetReplicateMovement(true);
 	bAlwaysRelevant = true;
 
-
 	body = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 	body->SetSimulatePhysics(true);
 	body->SetLinearDamping(1.0f);
@@ -25,6 +24,7 @@ ASQCharacter::ASQCharacter()
 	hit_zone->SetSimulatePhysics(false);
 	hit_zone->InitSphereRadius(100.0f);
 	hit_zone->SetCollisionProfileName(FName("OverlapAll"));
+	hit_zone->OnComponentBeginOverlap.AddDynamic(this, &ASQCharacter::OnBeginOverlap);
 	hit_zone->SetupAttachment(body);
 
 
@@ -41,6 +41,7 @@ ASQCharacter::ASQCharacter()
 
 	cube_movement = CreateDefaultSubobject<USQMovementComponent>(TEXT("Movement Component"));
 	cube_movement->UpdatedComponent = body;
+	affected_movement = cube_movement;
 
 	attack_component = CreateDefaultSubobject<USQAttackComponent>(TEXT("Attack Component"));
 	attack_component->affected_body = body;
@@ -58,7 +59,7 @@ void ASQCharacter::BeginPlay()
 void ASQCharacter::Tick( float DeltaTime )
 {
 	Super::Tick(DeltaTime);
-
+	
 	//if (Role < ROLE_AutonomousProxy)
 	//	return;
 }
@@ -86,7 +87,7 @@ void ASQCharacter::SetupPlayerInputComponent(class UInputComponent* input)
 
 void ASQCharacter::Input_Move_Forward(float value)
 {
-	if (value)
+	if (value && !IsStunned())
 	{
 		FVector direction = UKismetMathLibrary::GetForwardVector(GetControlRotation());
 		direction.Z = 0;
@@ -98,7 +99,7 @@ void ASQCharacter::Input_Move_Forward(float value)
 
 void ASQCharacter::Input_Move_Strafe(float value) 
 {
-	if (value)
+	if (value && !IsStunned())
 	{
 		FVector direction = UKismetMathLibrary::GetRightVector(GetControlRotation());
 		direction.Z = 0;
@@ -126,7 +127,8 @@ void ASQCharacter::Input_Look_Pitch(float value)
 
 void ASQCharacter::Input_Jump_Press_Implementation()
 {
-	cube_movement->Jump();
+	if(!IsStunned())
+		cube_movement->Jump();
 }
 
 void ASQCharacter::Input_Jump_Release_Implementation()
@@ -139,23 +141,56 @@ void ASQCharacter::Input_Jump_Release_Implementation()
 
 void ASQCharacter::Input_Dash_Press_Implementation()
 {
-	if (CanJump() && attack_component->BeginAttackCharge(EAttackType::Dash))
+	if (CanJump() && !IsStunned() && attack_component->BeginAttackCharge(EAttackType::Dash))
 		cube_movement->IncrementJumpCount();
 }
 
 void ASQCharacter::Input_Dash_Release_Implementation()
 {
-	attack_component->UnleashAttack(EAttackType::Dash);
+	if(!IsStunned())
+		attack_component->UnleashAttack(EAttackType::Dash);
 }
 
 /* Ranged */
 
 void ASQCharacter::Input_Ranged_Press_Implementation()
 {
-	attack_component->BeginAttackCharge(EAttackType::Ranged);
+	if(!IsStunned())
+		attack_component->BeginAttackCharge(EAttackType::Ranged);
 }
 
 void ASQCharacter::Input_Ranged_Release_Implementation()
 {
-	attack_component->UnleashAttack(EAttackType::Ranged);
+	if (!IsStunned())
+		attack_component->UnleashAttack(EAttackType::Ranged);
+}
+
+/* Damage */
+
+void ASQCharacter::OnBeginOverlap(UPrimitiveComponent* overlapped_comp, AActor* other_actor, UPrimitiveComponent* other_comp, int32 other_body_index, bool from_sweep, const FHitResult& sweep_result)
+{
+	if (!other_actor->GetClass()->ImplementsInterface(USQKnockable::StaticClass()))
+		return;
+
+	if (!IsStunned() && other_actor != this)
+		OnContactKnockable(other_actor);
+}
+
+void ASQCharacter::OnContactKnockable_Implementation(AActor* actor)
+{
+	if (!actor->GetClass()->ImplementsInterface(USQKnockable::StaticClass()))
+		return;
+
+	FVector velocity = GetVelocity();
+	const float power = velocity.Size();
+	velocity.Normalize();
+
+	FVector to_other = actor->GetActorLocation() - GetActorLocation();
+	to_other.Normalize();
+
+	const float velocity_weight = 0.5f;
+
+	const FVector direction = velocity * velocity_weight + to_other * (1.0f - velocity_weight);
+	const FVector force = direction * power;
+	ISQKnockable::Execute_AttemptKnock(actor, force);
 }

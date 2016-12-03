@@ -11,7 +11,7 @@ void USQMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	if (!affected_body)
 		affected_body = (UPrimitiveComponent*) UpdatedComponent;
 
-	if (!PawnOwner || !UpdatedComponent || !affected_body)
+	if (!PawnOwner || !UpdatedComponent || !affected_body || GetOwnerRole() < ROLE_AutonomousProxy)
 		return;
 
 	//Check if on ground
