@@ -16,5 +16,7 @@ class SQUAREDOFF_API ASQGameMode_TeamArenaBrawl : public AGameMode
 public:
 	ASQGameMode_TeamArenaBrawl();
 	
-	
+
+	virtual void Tick(float delta_seconds) override;
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* new_player) override;
 };

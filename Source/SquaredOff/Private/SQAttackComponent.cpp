@@ -8,6 +8,9 @@
 USQAttackComponent::USQAttackComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
+	static ConstructorHelpers::FClassFinder<ASQRangedProjectile> bp_projectile_finder(TEXT("/Game/Player/BP_SQRangedProjectile.BP_SQRangedProjectile_C"));
+	projectile_type = bp_projectile_finder.Succeeded() ? bp_projectile_finder.Class : ASQRangedProjectile::StaticClass();
 }
 
 void USQAttackComponent::BeginPlay()

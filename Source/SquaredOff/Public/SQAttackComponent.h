@@ -57,15 +57,15 @@ public:
 	
 	/* Dash */
 public:
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Dash")
 	float dash_charge_rate = 3.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Dash")
 	float min_dash_force = 170000.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Dash")
 	float max_dash_force = 320000.0f;
-	UPROPERTY(BlueprintAssignable, Category = "Attack")
+	UPROPERTY(BlueprintAssignable, Category = "Dash")
 	FAttackFunction OnDashBeginCharge; 
-	UPROPERTY(BlueprintAssignable, Category = "Attack")
+	UPROPERTY(BlueprintAssignable, Category = "Dash")
 	FAttackFunction OnDashUnleashCharge;
 
 	void BeginDashCharge();
@@ -73,16 +73,16 @@ public:
 
 	/* Ranged */
 public:
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Ranged")
 	float ranged_charge_rate = 3.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	TSubclassOf<ASQRangedProjectile> projectile_type = ASQRangedProjectile::StaticClass();
+	UPROPERTY(EditDefaultsOnly, Category = "Classes")
+	TSubclassOf<ASQRangedProjectile> projectile_type;
 	UPROPERTY()
 	ASQRangedProjectile* projectile;
 
-	UPROPERTY(BlueprintAssignable, Category = "Attack")
+	UPROPERTY(BlueprintAssignable, Category = "Ranged")
 	FAttackFunction OnRangedBeginCharge;
-	UPROPERTY(BlueprintAssignable, Category = "Attack")
+	UPROPERTY(BlueprintAssignable, Category = "Ranged")
 	FAttackFunction OnRangedUnleashCharge;
 
 	void BeginRangedCharge();
@@ -94,13 +94,13 @@ public:
 
 	/* Shield */
 public:
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Shield")
 	float shield_duration = 2.0f;
-	UPROPERTY(BlueprintAssignable, Category = "Attack")
+	UPROPERTY(BlueprintAssignable, Category = "Shield")
 	FAttackFunction OnShieldStart;
-	UPROPERTY(BlueprintAssignable, Category = "Attack")
+	UPROPERTY(BlueprintAssignable, Category = "Shield")
 	FAttackFunction OnShieldEndSuccess;
-	UPROPERTY(BlueprintAssignable, Category = "Attack")
+	UPROPERTY(BlueprintAssignable, Category = "Shield")
 	FAttackFunction OnShieldEndFail;
 
 	void ShieldStart();

@@ -12,6 +12,8 @@ ASQCharacter::ASQCharacter()
 	SetReplicateMovement(true);
 	bAlwaysRelevant = true;
 
+	hit_increase_factor = 0.07f;
+
 	body = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 	body->SetSimulatePhysics(true);
 	body->SetLinearDamping(1.0f);

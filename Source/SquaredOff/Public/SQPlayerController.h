@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/PlayerController.h"
+#include "Runtime/UMG/Public/UMG.h"
 #include "SQPlayerController.generated.h"
 
 /**
@@ -13,7 +14,9 @@ class SQUAREDOFF_API ASQPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
-	
+public:
+	UFUNCTION(BlueprintCallable, Client, Reliable, Category = "Player")
+	void SetupHUD(const TArray<TSubclassOf<UUserWidget>>& widgets);
 	
 	
 };
