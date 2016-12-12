@@ -2,9 +2,7 @@
 
 #include "SquaredOff.h"
 #include "SQGameState_ArenaBrawl.h"
-#include "SQPlayerController.h"
 #include "SQPlayerState.h"
-#include "SQCharacter.h"
 #include "SQGameMode_TeamArenaBrawl.h"
 
 ASQGameMode_TeamArenaBrawl::ASQGameMode_TeamArenaBrawl()
@@ -21,25 +19,94 @@ ASQGameMode_TeamArenaBrawl::ASQGameMode_TeamArenaBrawl()
 	HUDClass = bp_hud_finder.Succeeded() ? bp_hud_finder.Class : AHUD::StaticClass();
 
 	GameStateClass = ASQGameState_ArenaBrawl::StaticClass();
-	
+
+	bDelayedStart = true;
 	bUseSeamlessTravel = true;
 	bPauseable = false;
-	//bRemovePawnsAtStart = true;
 	bStartPlayersAsSpectators = true;
 }
+
+bool team_allocation_flag = false;
 
 void ASQGameMode_TeamArenaBrawl::HandleStartingNewPlayer_Implementation(APlayerController* new_player) 
 {
 	Super::HandleStartingNewPlayer_Implementation(new_player);
 	new_player->PlayerState->bIsSpectator = true; //Make sure players start as spectators (For PIE)
+
+	ASQPlayerState* player_state = (ASQPlayerState*) new_player->PlayerState;
+
+	if (player_state)
+	{
+		player_state->team_index = team_allocation_flag;
+		team_allocation_flag = !team_allocation_flag;
+	}
 }
 
+void ASQGameMode_TeamArenaBrawl::StartPlay() 
+{
+	Super::StartPlay();
+	sq_game_state = (ASQGameState_ArenaBrawl*) GameState;
+}
 
 void ASQGameMode_TeamArenaBrawl::Tick(float delta_seconds)
 {
 	Super::Tick(delta_seconds);
 
-	if (!HasMatchStarted() && ReadyToStartMatch())
+	//if (HasMatchStarted() )
+}
+
+void ASQGameMode_TeamArenaBrawl::StartMatch() 
+{
+	Super::StartMatch();
+
+	if (!sq_game_state || !GetWorld())
+		return;
+
+	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
+		Respawn(*it);
+}
+
+bool ASQGameMode_TeamArenaBrawl::ReadyToStartMatch_Implementation() 
+{
+	if (!sq_game_state || !sq_game_state->PlayerArray.Num())
+		return false;
+
+	for (APlayerState* player : sq_game_state->PlayerArray)
 	{
+		ASQPlayerState* player_state = (ASQPlayerState*)player;
+		
+		if (!player_state || (!player_state->bOnlySpectator && !player_state->is_ready))
+			return false;
 	}
+
+	return true;
+}
+
+void ASQGameMode_TeamArenaBrawl::OnKill_Implementation(ASQCharacter* character) 
+{
+	AController* controller = character->GetController();
+
+	if (controller)
+		Respawn(controller);
+}
+
+void ASQGameMode_TeamArenaBrawl::Respawn(AController* controller) 
+{
+	if (!controller || !GetWorld())
+		return;
+
+	//Unpossess and destroy pawn (If Respawn is called straight, it's not classed as a death (Call OnKill))
+	APawn* pawn = controller->GetPawn();
+	if (pawn)
+	{
+		controller->UnPossess();
+		pawn->Destroy();
+	}
+
+	FVector location(0.0f, 0.0f, 1000.0f);
+	FRotator rotation(0.0f, 0.0f, 0.0f);
+	FActorSpawnParameters spawn_info;
+
+	APawn* new_pawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, location, rotation, spawn_info);
+	controller->Possess(new_pawn);
 }

@@ -44,8 +44,8 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* input) override;	
-	
+	virtual void SetupPlayerInputComponent(class UInputComponent* input) override;
+	virtual void Destroyed() override;
 
 	virtual void Input_Move_Forward(float value);
 	virtual void Input_Move_Strafe(float value);

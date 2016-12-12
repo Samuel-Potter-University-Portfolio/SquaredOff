@@ -11,6 +11,13 @@
 UCLASS()
 class SQUAREDOFF_API ASQGameState_ArenaBrawl : public AGameState
 {
-	GENERATED_BODY()	
-	
+	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintPure, Category = "Match")
+	FText GetFormattedPhase();
+
+	UFUNCTION(BlueprintPure, Category = "Match")
+	FText GetFormattedDisplayedTime();
+	virtual float GetDisplayedTime() { return 134.0f; }
 };

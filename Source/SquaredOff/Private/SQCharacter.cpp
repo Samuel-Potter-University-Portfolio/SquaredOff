@@ -2,6 +2,7 @@
 
 #include "SquaredOff.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
+#include "SQGameMode_TeamArenaBrawl.h"
 #include "SQCharacter.h"
 
 
@@ -55,7 +56,6 @@ ASQCharacter::ASQCharacter()
 void ASQCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void ASQCharacter::Tick( float DeltaTime )
@@ -64,6 +64,16 @@ void ASQCharacter::Tick( float DeltaTime )
 	
 	//if (Role < ROLE_AutonomousProxy)
 	//	return;
+}
+
+void ASQCharacter::Destroyed() 
+{
+	ASQGameMode_TeamArenaBrawl* game_mode = GetWorld() ? (ASQGameMode_TeamArenaBrawl*)GetWorld()->GetAuthGameMode() : nullptr;
+
+	if (game_mode)
+		game_mode->OnKill(this);
+
+	Super::Destroyed();
 }
 
 void ASQCharacter::SetupPlayerInputComponent(class UInputComponent* input)
