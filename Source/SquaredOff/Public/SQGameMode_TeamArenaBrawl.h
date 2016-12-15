@@ -34,6 +34,13 @@ class SQUAREDOFF_API ASQGameMode_TeamArenaBrawl : public AGameMode
 private:
 	ASQGameState_ArenaBrawl* sq_game_state;
 
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Match Settings")
+	int match_length = 5;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Match Settings")
+	float match_time_left = 0;
+
 public:
 	ASQGameMode_TeamArenaBrawl();
 

@@ -42,23 +42,33 @@ void ASQGameMode_TeamArenaBrawl::Tick(float delta_seconds)
 {
 	Super::Tick(delta_seconds);
 
-	//if (HasMatchStarted() )
+	if (HasMatchStarted() && !HasMatchEnded())
+	{
+		match_time_left -= delta_seconds;
+
+		ASQGameState_ArenaBrawl* game_state = GetWorld()->GetGameState<ASQGameState_ArenaBrawl>();
+		if (game_state)
+			game_state->SetMatchTime(match_time_left);
+
+
+		if (match_time_left <= 0)
+		{
+			EndMatch();
+
+			for (FConstPlayerControllerIterator player = GetWorld()->GetPlayerControllerIterator(); player; ++player)
+			{
+				ASQPlayerController* controller = (ASQPlayerController*) player->Get();
+				if (controller)
+					Respawn(controller);
+			}
+		}
+	}
 }
 
 void ASQGameMode_TeamArenaBrawl::StartMatch() 
 {
-	//No call to super, as handle spawning ourselves
 	Super::StartMatch(); 
-	
-	/*
-	SetMatchState(MatchState::InProgress);
-
-	if (!sq_game_state || !GetWorld())
-		return;
-
-	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
-		Respawn(*it);
-	*/
+	match_time_left = match_length * 60.0f;
 }
 
 bool ASQGameMode_TeamArenaBrawl::ReadyToStartMatch_Implementation() 
@@ -123,7 +133,7 @@ void ASQGameMode_TeamArenaBrawl::Respawn(AController* controller)
 	FRotator rotation(0.0f, 0.0f, 0.0f);
 	FActorSpawnParameters spawn_info;
 	spawn_info.Owner = controller;
-
-	APawn* new_pawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, location, rotation, spawn_info);
+	
+	APawn* new_pawn = GetWorld()->SpawnActor<APawn>(!HasMatchEnded() ? DefaultPawnClass : SpectatorClass, location, rotation, spawn_info);
 	controller->Possess(new_pawn);
 }
