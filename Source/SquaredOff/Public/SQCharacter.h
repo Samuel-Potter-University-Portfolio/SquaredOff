@@ -47,6 +47,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* input) override;
 	virtual void Destroyed() override;
 
+	/* Movement */
+
 	virtual void Input_Move_Forward(float value);
 	virtual void Input_Move_Strafe(float value);
 	virtual void Input_Look_Yaw(float value);
@@ -57,6 +59,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Jump_Release();
 
+	/* Attacks */
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Dash_Press();
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
@@ -66,6 +70,10 @@ public:
 	void Input_Ranged_Press();
 	UFUNCTION(BlueprintNativeEvent, Category = "Player|Input")
 	void Input_Ranged_Release();
+
+	/* Damage */
+
+	AActor* last_damage_source;
 
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* overlapped_comp, AActor* other_actor, UPrimitiveComponent* other_comp, int32 other_body_index, bool from_sweep, const FHitResult& sweep_result);

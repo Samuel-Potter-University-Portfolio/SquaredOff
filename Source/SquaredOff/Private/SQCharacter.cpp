@@ -204,5 +204,12 @@ void ASQCharacter::OnContactKnockable_Implementation(AActor* actor)
 
 	const FVector direction = velocity * velocity_weight + to_other * (1.0f - velocity_weight);
 	const FVector force = direction * power;
-	ISQKnockable::Execute_AttemptKnock(actor, force);
+	
+	if (ISQKnockable::Execute_AttemptKnock(actor, force))
+	{
+		ASQCharacter* other_char = (ASQCharacter*)actor;
+
+		if (other_char)
+			other_char->last_damage_source = PlayerState;
+	}
 }

@@ -87,7 +87,28 @@ void ASQGameMode_TeamArenaBrawl::OnKill_Implementation(ASQCharacter* character)
 	AController* controller = character->GetController();
 
 	if (controller)
+	{
 		Respawn(controller);
+
+		AActor* last_damage = character->last_damage_source;
+
+		//Suicide
+		if (!last_damage) 
+		{
+			APlayerState* player_state = character->PlayerState;
+			if (player_state)
+				player_state->Score--;
+		}
+
+		//Reward killer
+		else 
+		{
+			APlayerState* other_player = (APlayerState*)last_damage;
+			if (other_player)
+				other_player->Score++;
+		}
+
+	}
 }
 
 void ASQGameMode_TeamArenaBrawl::Respawn(AController* controller) 
