@@ -12,6 +12,7 @@ ASQCharacter::ASQCharacter()
 	SetReplicates(true);
 	SetReplicateMovement(true);
 	bAlwaysRelevant = true;
+	AutoPossessPlayer = EAutoReceiveInput::Disabled;
 
 	hit_increase_factor = 0.07f;
 

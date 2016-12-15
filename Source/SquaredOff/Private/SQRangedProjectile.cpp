@@ -3,6 +3,7 @@
 #include "SquaredOff.h"
 #include "Net/UnrealNetwork.h"
 #include "SQKnockable.h"
+#include "SQCharacter.h"
 #include "SQRangedProjectile.h"
 
 
@@ -85,7 +86,13 @@ void ASQRangedProjectile::OnContactKnockable_Implementation(AActor* actor)
 	const FVector force = velocity * base_damage * (1.0f + charge_damage_factor * charge);
 
 	if (actor->GetClass()->ImplementsInterface(USQKnockable::StaticClass()))
-		ISQKnockable::Execute_AttemptKnock(actor, force);
+		if (ISQKnockable::Execute_AttemptKnock(actor, force))
+		{
+			ASQCharacter* other_char = (ASQCharacter*)actor;
+
+			if (other_char)
+				other_char->last_damage_source = parent ? parent->PlayerState : nullptr;
+		}
 }
 
 void ASQRangedProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
