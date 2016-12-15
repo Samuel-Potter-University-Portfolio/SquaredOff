@@ -9,6 +9,21 @@
 #include "SQPlayerController.h"
 #include "SQGameMode_TeamArenaBrawl.generated.h"
 
+/*
+From 'GameMode.h'
+
+namespace MatchState
+{
+	extern ENGINE_API const FName EnteringMap;			// We are entering this map, actors are not yet ticking
+	extern ENGINE_API const FName WaitingToStart;		// Actors are ticking, but the match has not yet started
+	extern ENGINE_API const FName InProgress;			// Normal gameplay is occurring. Specific games will have their own state machine inside this state
+	extern ENGINE_API const FName WaitingPostMatch;		// Match has ended so we aren't accepting new players, but actors are still ticking
+	extern ENGINE_API const FName LeavingMap;			// We are transitioning out of the map to another location
+	extern ENGINE_API const FName Aborted;				// Match has failed due to network issues or other problems, cannot continue
+}
+*/
+
+
 /**
  * 
  */
@@ -27,12 +42,18 @@ public:
 	virtual void Tick(float delta_seconds) override;
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* new_player) override;
 
-	virtual void StartMatch() override;
-	virtual bool ReadyToStartMatch_Implementation() override;
 
 	UFUNCTION(BlueprintNativeEvent)
 	void OnKill(ASQCharacter* character);
 
 	UFUNCTION(BlueprintCallable, Category="GameMode")
 	void Respawn(AController* controller);
+
+	//virtual bool IsMatchInProgress() const { return false; };
+	//virtual bool HasMatchEnded() const { return false; };
+	virtual bool ReadyToStartMatch_Implementation() override;
+	virtual void StartMatch() override;
+	//virtual void EndMatch() override {};
+	//virtual void RestartGame() override {};
+	//virtual void AbortMatch() override {};
 };

@@ -18,7 +18,7 @@ public:
 	bool is_ready = false;
 
 	UPROPERTY(replicated, BlueprintReadOnly, Category = "Match")
-	uint8 team_index = 0;
+	uint8 team_index = 255;
 
 	UFUNCTION(Server, Unreliable, WithValidation)
 	void SetReadyState(const bool ready_state);

@@ -57,7 +57,10 @@ void ASQGameMode_TeamArenaBrawl::Tick(float delta_seconds)
 
 void ASQGameMode_TeamArenaBrawl::StartMatch() 
 {
-	Super::StartMatch();
+	//No call to super, as handle spawning ourselves
+	//Super::StartMatch(); 
+
+	SetMatchState(MatchState::InProgress);
 
 	if (!sq_game_state || !GetWorld())
 		return;
@@ -127,6 +130,7 @@ void ASQGameMode_TeamArenaBrawl::Respawn(AController* controller)
 	FVector location(0.0f, 0.0f, 1000.0f);
 	FRotator rotation(0.0f, 0.0f, 0.0f);
 	FActorSpawnParameters spawn_info;
+	spawn_info.Owner = controller;
 
 	APawn* new_pawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, location, rotation, spawn_info);
 	controller->Possess(new_pawn);
