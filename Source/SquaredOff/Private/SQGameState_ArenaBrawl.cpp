@@ -14,6 +14,7 @@ void ASQGameState_ArenaBrawl::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ASQGameState_ArenaBrawl, replicated_time);
+	DOREPLIFETIME(ASQGameState_ArenaBrawl, is_match_over);
 }
 
 FText ASQGameState_ArenaBrawl::GetFormattedPhase() 
@@ -39,5 +40,7 @@ void ASQGameState_ArenaBrawl::Tick(float delta_seconds)
 	match_time -= delta_seconds;
 
 	if (match_time < 0.0f)
+	{
 		match_time = 0.0f;
+	}
 }

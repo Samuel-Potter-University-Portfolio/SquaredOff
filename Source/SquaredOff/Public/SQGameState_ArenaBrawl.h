@@ -39,5 +39,9 @@ public:
 		match_time = replicated_time;
 	}
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Match")
+	bool is_match_over = false;
+
+
 	virtual void Tick(float delta_seconds) override;
 };

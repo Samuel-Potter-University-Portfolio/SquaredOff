@@ -55,6 +55,9 @@ void ASQGameMode_TeamArenaBrawl::Tick(float delta_seconds)
 		{
 			EndMatch();
 
+			if (game_state)
+				game_state->is_match_over = true;
+
 			for (FConstPlayerControllerIterator player = GetWorld()->GetPlayerControllerIterator(); player; ++player)
 			{
 				ASQPlayerController* controller = (ASQPlayerController*) player->Get();
@@ -120,15 +123,7 @@ void ASQGameMode_TeamArenaBrawl::Respawn(AController* controller)
 {
 	if (!controller || !GetWorld())
 		return;
-
-	//Unpossess and destroy pawn (If Respawn is called straight, it's not classed as a death (Call OnKill))
-	APawn* pawn = controller->GetPawn();
-	if (pawn)
-	{
-		controller->UnPossess();
-		pawn->Destroy();
-	}
-
+	
 	FVector location(0.0f, 0.0f, 1000.0f);
 	FRotator rotation(0.0f, 0.0f, 0.0f);
 	FActorSpawnParameters spawn_info;
