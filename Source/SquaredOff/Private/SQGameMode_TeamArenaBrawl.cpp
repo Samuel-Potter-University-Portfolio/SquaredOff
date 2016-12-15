@@ -9,11 +9,12 @@ ASQGameMode_TeamArenaBrawl::ASQGameMode_TeamArenaBrawl()
 {
 	static ConstructorHelpers::FClassFinder<ASQCharacter> bp_player_finder(TEXT("/Game/Player/BP_SQCharacter.BP_SQCharacter_C"));
 	static ConstructorHelpers::FClassFinder<ASQPlayerController> bp_controller_finder(TEXT("/Game/Player/BP_SQPlayerController.BP_SQPlayerController_C"));
+	static ConstructorHelpers::FClassFinder<ASQPlayerState> bp_player_state_finder(TEXT("/Game/Player/BP_SQPlayerState.BP_SQPlayerState_C"));
 
 	DefaultPawnClass = bp_player_finder.Succeeded() ? bp_player_finder.Class : ASQCharacter::StaticClass();
-	DefaultPlayerName = FText::FromString(TEXT("Player"));
 	PlayerControllerClass = bp_controller_finder.Succeeded() ? bp_controller_finder.Class : ASQPlayerController::StaticClass();
-	PlayerStateClass = ASQPlayerState::StaticClass();
+	PlayerStateClass = bp_player_state_finder.Succeeded() ? bp_player_state_finder.Class : ASQPlayerState::StaticClass();
+	DefaultPlayerName = FText::FromString(TEXT("Player"));
 
 	static ConstructorHelpers::FClassFinder<AHUD> bp_hud_finder(TEXT("/Game/UI/DefaultHUD.DefaultHUD_C"));
 	HUDClass = bp_hud_finder.Succeeded() ? bp_hud_finder.Class : AHUD::StaticClass();
@@ -26,20 +27,9 @@ ASQGameMode_TeamArenaBrawl::ASQGameMode_TeamArenaBrawl()
 	bStartPlayersAsSpectators = true;
 }
 
-bool team_allocation_flag = false;
-
 void ASQGameMode_TeamArenaBrawl::HandleStartingNewPlayer_Implementation(APlayerController* new_player) 
 {
-	Super::HandleStartingNewPlayer_Implementation(new_player);
-	new_player->PlayerState->bIsSpectator = true; //Make sure players start as spectators (For PIE)
-
-	ASQPlayerState* player_state = (ASQPlayerState*) new_player->PlayerState;
-
-	if (player_state)
-	{
-		player_state->team_index = team_allocation_flag;
-		team_allocation_flag = !team_allocation_flag;
-	}
+	//Super::HandleStartingNewPlayer_Implementation(new_player);
 }
 
 void ASQGameMode_TeamArenaBrawl::StartPlay() 
@@ -58,8 +48,9 @@ void ASQGameMode_TeamArenaBrawl::Tick(float delta_seconds)
 void ASQGameMode_TeamArenaBrawl::StartMatch() 
 {
 	//No call to super, as handle spawning ourselves
-	//Super::StartMatch(); 
-
+	Super::StartMatch(); 
+	
+	/*
 	SetMatchState(MatchState::InProgress);
 
 	if (!sq_game_state || !GetWorld())
@@ -67,6 +58,7 @@ void ASQGameMode_TeamArenaBrawl::StartMatch()
 
 	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
 		Respawn(*it);
+	*/
 }
 
 bool ASQGameMode_TeamArenaBrawl::ReadyToStartMatch_Implementation() 

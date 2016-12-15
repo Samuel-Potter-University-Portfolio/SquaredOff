@@ -68,8 +68,7 @@ void ASQCharacter::Tick( float DeltaTime )
 
 void ASQCharacter::Destroyed() 
 {
-	ASQGameMode_TeamArenaBrawl* game_mode = GetWorld() ? (ASQGameMode_TeamArenaBrawl*)GetWorld()->GetAuthGameMode() : nullptr;
-
+	ASQGameMode_TeamArenaBrawl* game_mode = GetWorld()->GetAuthGameMode<ASQGameMode_TeamArenaBrawl>();
 	if (game_mode)
 		game_mode->OnKill(this);
 
